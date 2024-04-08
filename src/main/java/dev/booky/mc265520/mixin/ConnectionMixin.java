@@ -21,7 +21,8 @@ public abstract class ConnectionMixin extends SimpleChannelInboundHandler<Packet
             method = "configurePacketHandler",
             at = @At(
                     value = "INVOKE",
-                    target = "Lio/netty/channel/ChannelPipeline;addLast([Lio/netty/channel/ChannelHandler;)Lio/netty/channel/ChannelPipeline;"
+                    target = "Lio/netty/channel/ChannelPipeline;addLast([Lio/netty/channel/ChannelHandler;)Lio/netty/channel/ChannelPipeline;",
+                    remap = false
             )
     )
     private ChannelPipeline removeFCHandler(ChannelPipeline instance, ChannelHandler[] handlers) {
@@ -56,7 +57,8 @@ public abstract class ConnectionMixin extends SimpleChannelInboundHandler<Packet
             at = @At(
                     value = "INVOKE",
                     target = "Lio/netty/channel/ChannelPipeline;addBefore(Ljava/lang/String;Ljava/lang/String;Lio/netty/channel/ChannelHandler;)Lio/netty/channel/ChannelPipeline;",
-                    ordinal = 0
+                    ordinal = 0,
+                    remap = false
             )
     )
     private ChannelPipeline redirDecoderSetup(
@@ -72,7 +74,8 @@ public abstract class ConnectionMixin extends SimpleChannelInboundHandler<Packet
             at = @At(
                     value = "INVOKE",
                     target = "Lio/netty/channel/ChannelPipeline;addBefore(Ljava/lang/String;Ljava/lang/String;Lio/netty/channel/ChannelHandler;)Lio/netty/channel/ChannelPipeline;",
-                    ordinal = 1
+                    ordinal = 1,
+                    remap = false
             )
     )
     private ChannelPipeline redirEncoderSetup(
