@@ -40,4 +40,10 @@ tasks {
         options.encoding = Charsets.UTF_8.name()
         options.release = 17
     }
+
+    withType<Jar> {
+        from(rootProject.layout.projectDirectory.file("LICENSE")) {
+            rename { return@rename "${it}_${project.name}" }
+        }
+    }
 }
