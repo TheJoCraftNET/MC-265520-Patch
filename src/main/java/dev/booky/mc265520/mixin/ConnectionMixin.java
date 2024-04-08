@@ -50,4 +50,36 @@ public abstract class ConnectionMixin extends SimpleChannelInboundHandler<Packet
         // add flow control handler before validator (which also switches protocols)
         pipeline.addBefore("validator", null, new FlowControlHandler());
     }
+
+    @Redirect(
+            method = "setupCompression",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lio/netty/channel/ChannelPipeline;addBefore(Ljava/lang/String;Ljava/lang/String;Lio/netty/channel/ChannelHandler;)Lio/netty/channel/ChannelPipeline;",
+                    ordinal = 0
+            )
+    )
+    private ChannelPipeline redirDecoderSetup(
+            ChannelPipeline instance, String baseName,
+            String name, ChannelHandler handler
+    ) {
+        // add compression decoder before FlowControlHandler
+        return instance.addAfter("splitter", name, handler);
+    }
+
+    @Redirect(
+            method = "setupCompression",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lio/netty/channel/ChannelPipeline;addBefore(Ljava/lang/String;Ljava/lang/String;Lio/netty/channel/ChannelHandler;)Lio/netty/channel/ChannelPipeline;",
+                    ordinal = 1
+            )
+    )
+    private ChannelPipeline redirEncoderSetup(
+            ChannelPipeline instance, String baseName,
+            String name, ChannelHandler handler
+    ) {
+        // align with change above
+        return instance.addAfter("prepender", name, handler);
+    }
 }
