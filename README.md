@@ -4,7 +4,7 @@ A fabric mod which fixes [MC-265520](https://bugs.mojang.com/browse/MC-265520) i
 
 ## Downloads
 
-- GitHub Releases: https://github.com/booky10/MC-265520-Patch/releases
+- GitHub Releases: https://github.com/TheJoCraftNET/MC-265520-Patch/releases
 
 ## Building
 
