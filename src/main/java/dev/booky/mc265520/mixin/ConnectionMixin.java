@@ -1,9 +1,9 @@
 package dev.booky.mc265520.mixin;
 
+import dev.booky.mc265520.AutoReadHolderHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.flow.FlowControlHandler;
 import net.minecraft.network.BandwidthDebugMonitor;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
@@ -38,7 +38,7 @@ public abstract class ConnectionMixin extends SimpleChannelInboundHandler<Packet
             BandwidthDebugMonitor monitor, CallbackInfo ci
     ) {
         // add flow control handler right after the frame decoder
-        pipeline.addAfter("splitter", null, new FlowControlHandler());
+        pipeline.addAfter("splitter", null, new AutoReadHolderHandler());
     }
 
     @Inject(
@@ -49,7 +49,7 @@ public abstract class ConnectionMixin extends SimpleChannelInboundHandler<Packet
             ChannelPipeline pipeline, PacketFlow flow, CallbackInfo ci
     ) {
         // add flow control handler before validator (which also switches protocols)
-        pipeline.addBefore("validator", null, new FlowControlHandler());
+        pipeline.addBefore("validator", null, new AutoReadHolderHandler());
     }
 
     @Redirect(
