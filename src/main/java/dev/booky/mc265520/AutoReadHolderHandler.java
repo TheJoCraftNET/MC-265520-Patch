@@ -24,6 +24,7 @@
 
 package dev.booky.mc265520;
 
+import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
@@ -33,38 +34,46 @@ import java.util.Queue;
 
 /**
  * A variation on {@link io.netty.handler.flow.FlowControlHandler} that explicitly holds messages
- * on {@code channelRead} and only releases them on an explicit read operation.
+ * on {@code channelRead} and only releases them on an explicit read operation after automatic
+ * reading has been enabled again.
+ * <br>
+ * Based on <a href="https://github.com/PaperMC/Velocity/blob/7ca40094cb208abdc29beaad3dcafeb9b3488618/proxy/src/main/java/com/velocitypowered/proxy/network/pipeline/AutoReadHolderHandler.java">https://github.com/PaperMC/Velocity/blob/7ca40094cb208abdc29beaad3dcafeb9b3488618/proxy/src/main/java/com/velocitypowered/proxy/network/pipeline/AutoReadHolderHandler.java</a> (MIT license)
+ * <br>
+ * This handler has been adjusted to account for auto reading status changing while
+ * handling a packet, which isn't checked for in Velocity's AutoReadHolderHandler.
  *
  * @author Andrew Steinborn &lt;git@steinborn.me&gt;
- * @see <a href="https://github.com/PaperMC/Velocity/blob/7ca40094cb208abdc29beaad3dcafeb9b3488618/proxy/src/main/java/com/velocitypowered/proxy/network/pipeline/AutoReadHolderHandler.java">https://github.com/PaperMC/Velocity/blob/7ca40094cb208abdc29beaad3dcafeb9b3488618/proxy/src/main/java/com/velocitypowered/proxy/network/pipeline/AutoReadHolderHandler.java</a> (MIT license)
  */
 public class AutoReadHolderHandler extends ChannelDuplexHandler {
 
-    private final Queue<Object> queuedMessages;
-
-    public AutoReadHolderHandler() {
-        this.queuedMessages = new ArrayDeque<>();
-    }
+    private final Queue<Object> queuedMessages = new ArrayDeque<>();
+    private ChannelConfig config;
 
     @Override
-    public void read(ChannelHandlerContext ctx) throws Exception {
-        drainQueuedMessages(ctx);
-        ctx.read();
-    }
-
-    private void drainQueuedMessages(ChannelHandlerContext ctx) {
-        if (!this.queuedMessages.isEmpty()) {
-            Object queued;
-            while ((queued = this.queuedMessages.poll()) != null) {
-                ctx.fireChannelRead(queued);
-            }
-            ctx.fireChannelReadComplete();
+    public void read(ChannelHandlerContext ctx) {
+        if (!this.config.isAutoRead()) {
+            return;
+        }
+        this.drainQueuedMessages(ctx);
+        if (this.config.isAutoRead()) {
+            ctx.read();
         }
     }
 
+    private void drainQueuedMessages(ChannelHandlerContext ctx) {
+        if (this.queuedMessages.isEmpty()) {
+            return;
+        }
+        Object queued;
+        while (this.config.isAutoRead() && (queued = this.queuedMessages.poll()) != null) {
+            ctx.fireChannelRead(queued);
+        }
+        ctx.fireChannelReadComplete();
+    }
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (ctx.channel().config().isAutoRead()) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        if (this.config.isAutoRead()) {
             ctx.fireChannelRead(msg);
         } else {
             this.queuedMessages.add(msg);
@@ -72,14 +81,19 @@ public class AutoReadHolderHandler extends ChannelDuplexHandler {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        if (this.queuedMessages.isEmpty()) {
+    public void channelReadComplete(ChannelHandlerContext ctx) {
+        if (this.config.isAutoRead()) {
             ctx.fireChannelReadComplete();
         }
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    public void handlerAdded(ChannelHandlerContext ctx) {
+        this.config = ctx.channel().config();
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) {
         for (Object message : this.queuedMessages) {
             ReferenceCountUtil.release(message);
         }
