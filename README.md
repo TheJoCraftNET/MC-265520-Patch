@@ -16,4 +16,4 @@ The output jar can be found in `build` → `libs` after the build has completed.
 
 ## License
 
-This project is licensed under the [**MIT**](./LICENSE).
+This project is licensed under the [**MIT License**](./LICENSE).
