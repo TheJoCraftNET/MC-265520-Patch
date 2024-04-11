@@ -9,6 +9,13 @@
     "booky10"
   ],
 
+  "icon": "assets/mc-265520-patch/icon.png",
+  "contact": {
+    "issues": "https://github.com/TheJoCraftNET/MC-265520-Patch/issues",
+    "sources": "https://github.com/TheJoCraftNET/MC-265520-Patch",
+    "homepage": "https://thejocraft.net/"
+  },
+
   "license": "MIT",
 
   "environment": "*",
