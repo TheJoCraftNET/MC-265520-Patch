@@ -5,6 +5,7 @@ A fabric mod which fixes [MC-265520](https://bugs.mojang.com/browse/MC-265520) i
 ## Downloads
 
 - GitHub Releases: https://github.com/TheJoCraftNET/MC-265520-Patch/releases
+- Modrinth: https://modrinth.com/mod/mc265520
 
 ## Building
 
